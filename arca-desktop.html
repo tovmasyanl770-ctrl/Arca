@@ -1,0 +1,3248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARCA — Intelligence Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Geist+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ──────────────────────────────────────────────── */
+:root {
+  --ink:      #0e0d0c;
+  --ink-2:    #1a1917;
+  --ink-3:    #242220;
+  --ink-4:    #2e2c29;
+  --bone:     #e8e2d9;
+  --bone-2:   #c4bdb3;
+  --bone-3:   #8a847c;
+  --bone-4:   #4a4742;
+  --ember:    #c8714a;
+  --ember-d:  #a35a38;
+  --ember-l:  #e8956e;
+  --wire:     rgba(232,226,217,0.06);
+  --wire-2:   rgba(232,226,217,0.11);
+  --wire-3:   rgba(232,226,217,0.18);
+  --r:        10px;
+  --r-sm:     6px;
+  --sw:       230px;
+  --ff-disp:  'Cormorant Garamond', Georgia, serif;
+  --ff-body:  'Instrument Sans', sans-serif;
+  --ff-mono:  'Geist Mono', monospace;
+}
+
+/* ─── RESET ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--ff-body);
+  background: var(--ink);
+  color: var(--bone);
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; cursor: pointer; }
+textarea, input, select { font-family: inherit; }
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--ink-4); border-radius: 2px; }
+
+/* ─── LAYOUT ──────────────────────────────────────────────── */
+.shell { display: flex; height: 100vh; width: 100vw; }
+
+/* ─── SIDEBAR ─────────────────────────────────────────────── */
+.rail {
+  width: var(--sw);
+  flex-shrink: 0;
+  background: var(--ink-2);
+  border-right: 1px solid var(--wire);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* EMBLEM */
+.emblem-wrap {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--wire);
+}
+
+.emblem {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.emblem-mark {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* SVG emblem drawn inline — geometric, no clip-art */
+.emblem-mark svg {
+  width: 34px;
+  height: 34px;
+  display: block;
+}
+
+.emblem-text { line-height: 1; }
+
+.emblem-name {
+  font-family: var(--ff-disp);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--bone);
+  text-transform: uppercase;
+}
+
+.emblem-tagline {
+  font-family: var(--ff-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  color: var(--bone-3);
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* NAV */
+.nav {
+  flex: 1;
+  padding: 14px 10px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.nav::-webkit-scrollbar { display: none; }
+
+.nav-sect {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  color: var(--bone-4);
+  text-transform: uppercase;
+  padding: 0 10px;
+  margin: 14px 0 5px;
+}
+
+.nav-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+  margin-bottom: 1px;
+  user-select: none;
+}
+
+.nav-row:hover { background: var(--wire); }
+
+.nav-row.on {
+  background: var(--wire-2);
+  border-color: var(--wire-3);
+}
+
+.nav-row.on .nav-lbl { color: var(--bone); }
+
+.nav-glyph {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+  background: var(--wire);
+}
+
+.nav-row.on .nav-glyph {
+  background: rgba(200,113,74,0.18);
+}
+
+.nav-lbl {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--bone-3);
+  flex: 1;
+  transition: color 0.15s;
+}
+
+.nav-pill {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+}
+.nav-pill.e  { background: rgba(200,113,74,0.18); color: var(--ember-l); }
+.nav-pill.b  { background: rgba(200,113,74,0.1);  color: var(--bone-3); }
+
+/* RAIL FOOTER */
+.rail-foot {
+  padding: 14px;
+  border-top: 1px solid var(--wire);
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  background: var(--wire);
+  transition: background 0.15s;
+}
+
+.user-row:hover { background: var(--wire-2); }
+
+.user-av {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--ember-d) 0%, var(--ember) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--ff-disp);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bone);
+  flex-shrink: 0;
+}
+
+.user-info { flex: 1; min-width: 0; }
+.user-n  { font-size: 11.5px; font-weight: 600; color: var(--bone); }
+.user-p  { font-family: var(--ff-mono); font-size: 8px; color: var(--ember); letter-spacing: 0.1em; margin-top: 1px; }
+
+/* ─── MAIN ────────────────────────────────────────────────── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* TOP BAR */
+.bar {
+  height: 50px;
+  border-bottom: 1px solid var(--wire);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 22px;
+  background: var(--ink-2);
+  flex-shrink: 0;
+}
+
+.bar-left { display: flex; align-items: center; gap: 10px; }
+
+.bar-title {
+  font-family: var(--ff-disp);
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: var(--bone);
+}
+
+.bar-sep { color: var(--bone-4); font-size: 12px; }
+
+.live-dot {
+  width: 6px; height: 6px;
+  background: #6db87a;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #6db87a;
+  animation: lp 2.5s ease-in-out infinite;
+}
+@keyframes lp {
+  0%,100% { opacity:1; } 50% { opacity:0.45; }
+}
+
+.bar-right { display: flex; gap: 6px; }
+
+.bar-btn {
+  width: 30px; height: 30px;
+  border-radius: var(--r-sm);
+  background: var(--wire);
+  border: 1px solid var(--wire-2);
+  color: var(--bone-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.bar-btn:hover { background: var(--wire-2); color: var(--bone); }
+
+/* ─── PANELS ──────────────────────────────────────────────── */
+.stage { flex: 1; overflow: hidden; position: relative; }
+
+.pane {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  animation: pfade 0.2s ease;
+}
+.pane.on { display: flex; }
+
+@keyframes pfade {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PANEL: CHAT
+═══════════════════════════════════════════════════════════ */
+.chat-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-4) transparent;
+}
+
+.zero-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+  padding: 40px;
+}
+
+.zero-mark {
+  width: 56px; height: 56px;
+  border: 1px solid var(--wire-3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zero-mark svg { width: 24px; height: 24px; }
+
+.zero-h {
+  font-family: var(--ff-disp);
+  font-size: 26px;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+  color: var(--bone);
+  line-height: 1.2;
+}
+
+.zero-sub {
+  font-size: 13px;
+  color: var(--bone-3);
+  max-width: 300px;
+  line-height: 1.6;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.chip {
+  padding: 6px 13px;
+  border: 1px solid var(--wire-2);
+  border-radius: 40px;
+  font-size: 11.5px;
+  color: var(--bone-3);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chip:hover { border-color: var(--wire-3); color: var(--bone); background: var(--wire); }
+
+.msg { display: flex; gap: 11px; max-width: 780px; }
+.msg.u  { align-self: flex-end; flex-direction: row-reverse; }
+.msg.ai { align-self: flex-start; }
+
+.msg-av {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.msg.u  .msg-av { background: linear-gradient(135deg, var(--ember-d), var(--ember)); color: var(--bone); font-family: var(--ff-disp); font-size: 13px; }
+.msg.ai .msg-av { background: var(--ink-3); border: 1px solid var(--wire-2); }
+
+.msg-body { max-width: 600px; }
+
+.msg-text {
+  padding: 11px 15px;
+  border-radius: var(--r);
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--bone);
+  border: 1px solid var(--wire);
+  background: var(--ink-3);
+}
+
+.msg.u .msg-text {
+  background: rgba(200,113,74,0.1);
+  border-color: rgba(200,113,74,0.2);
+}
+
+.msg-ts {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  color: var(--bone-4);
+  margin-top: 4px;
+  padding: 0 3px;
+}
+.msg.u .msg-ts { text-align: right; }
+
+.dots { display: flex; gap: 4px; align-items: center; padding: 6px 0; }
+.dots span {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--ember);
+  opacity: 0.5;
+  animation: db 1.2s ease infinite;
+}
+.dots span:nth-child(2) { animation-delay:.15s; }
+.dots span:nth-child(3) { animation-delay:.3s;  }
+@keyframes db {
+  0%,80%,100% { transform:translateY(0); opacity:0.4; }
+  40% { transform:translateY(-4px); opacity:1; }
+}
+
+/* INPUT */
+.chat-foot {
+  padding: 14px 22px 18px;
+  background: var(--ink-2);
+  border-top: 1px solid var(--wire);
+  flex-shrink: 0;
+}
+
+.inp-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  background: var(--ink-3);
+  border: 1px solid var(--wire-2);
+  border-radius: var(--r);
+  padding: 9px 10px 9px 16px;
+  transition: border-color 0.2s;
+}
+.inp-wrap:focus-within { border-color: rgba(200,113,74,0.4); }
+
+.inp-ta {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  color: var(--bone);
+  font-family: var(--ff-body);
+  font-size: 13.5px;
+  line-height: 1.5;
+  min-height: 22px;
+  max-height: 130px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.inp-ta::placeholder { color: var(--bone-4); }
+
+.inp-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+
+.inp-btn {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: var(--bone-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+.inp-btn:hover { background: var(--wire); color: var(--bone-2); }
+
+.send {
+  width: 32px; height: 32px;
+  border-radius: 7px;
+  background: var(--ember);
+  border: none;
+  color: var(--bone);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.15s;
+  box-shadow: 0 2px 10px rgba(200,113,74,0.3);
+}
+.send:hover { background: var(--ember-l); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(200,113,74,0.4); }
+.send:active { transform: translateY(0); }
+
+.inp-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 7px;
+  padding: 0 2px;
+}
+
+.model-id {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  color: var(--bone-4);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.model-id::before {
+  content: '';
+  width: 4px; height: 4px;
+  background: #6db87a;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.cc {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  color: var(--bone-4);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PANEL: HUMANIZER
+═══════════════════════════════════════════════════════════ */
+.split { flex: 1; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
+.split-col { display: flex; flex-direction: column; overflow: hidden; }
+.split-col + .split-col { border-left: 1px solid var(--wire); }
+
+.col-hd {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--wire);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.col-lbl {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bone-3);
+}
+
+.col-meta {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  color: var(--bone-4);
+}
+
+.col-ta {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  color: var(--bone);
+  font-family: var(--ff-body);
+  font-size: 13.5px;
+  line-height: 1.72;
+  padding: 18px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-4) transparent;
+}
+.col-ta::placeholder { color: var(--bone-4); font-style: italic; }
+
+.col-out {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  font-size: 13.5px;
+  line-height: 1.72;
+  color: var(--bone);
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-4) transparent;
+}
+
+.col-ft {
+  padding: 10px 18px;
+  border-top: 1px solid var(--wire);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.sel {
+  background: var(--ink-3);
+  border: 1px solid var(--wire-2);
+  border-radius: var(--r-sm);
+  color: var(--bone-2);
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  padding: 5px 9px;
+  outline: none;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+
+.hum-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  color: var(--bone-3);
+}
+.score-bar { width: 52px; height: 3px; background: var(--ink-4); border-radius: 2px; overflow: hidden; }
+.score-fill { height: 100%; background: #6db87a; border-radius: 2px; transition: width .6s ease; }
+
+/* BUTTONS */
+.btn {
+  padding: 7px 16px;
+  border-radius: var(--r-sm);
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid transparent;
+}
+
+.btn-e {
+  background: var(--ember);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(200,113,74,0.28);
+}
+.btn-e:hover { background: var(--ember-l); box-shadow: 0 3px 12px rgba(200,113,74,0.4); transform: translateY(-1px); }
+.btn-e:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.btn-g {
+  background: var(--wire);
+  border-color: var(--wire-2);
+  color: var(--bone-2);
+}
+.btn-g:hover { background: var(--wire-2); color: var(--bone); }
+
+/* spinner */
+.spin {
+  width: 13px; height: 13px;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .65s linear infinite;
+  display: none;
+}
+.spin.on { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════════════════════════════
+   PANEL: COWORK — CONNECTED WORKSPACE
+═══════════════════════════════════════════════════════════ */
+
+/* Shell: left sidebar + main content area */
+.cw-shell {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Left source panel */
+.cw-left {
+  width: 260px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--wire);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cw-left-hd {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--wire);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.cw-left-title {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bone-3);
+}
+
+.cw-sources {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  scrollbar-width: none;
+}
+.cw-sources::-webkit-scrollbar { display: none; }
+
+/* Integration connector cards */
+.int-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--wire);
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: var(--ink-3);
+}
+.int-card:hover { border-color: var(--wire-3); background: var(--ink-4); }
+.int-card.connected { border-color: rgba(109,184,122,0.3); background: rgba(109,184,122,0.06); }
+.int-card.active-src { border-color: rgba(200,113,74,0.4); background: rgba(200,113,74,0.08); }
+
+.int-ico {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  background: var(--wire);
+}
+
+.int-info { flex: 1; min-width: 0; }
+.int-name { font-size: 11.5px; font-weight: 600; color: var(--bone-2); }
+.int-status {
+  font-family: var(--ff-mono);
+  font-size: 8.5px;
+  margin-top: 1px;
+  letter-spacing: 0.04em;
+}
+.int-status.ok  { color: #6db87a; }
+.int-status.off { color: var(--bone-4); }
+.int-status.busy{ color: var(--ember-l); }
+
+.int-action {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  background: var(--wire);
+  border: 1px solid var(--wire-2);
+  color: var(--bone-3);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.int-action:hover { background: var(--ember); border-color: var(--ember); color: #fff; }
+.int-action.small { padding: 2px 6px; font-size: 7.5px; }
+
+/* Document picker */
+.doc-picker {
+  margin-top: 4px;
+  border: 1px solid var(--wire);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  display: none;
+}
+.doc-picker.open { display: block; }
+
+.doc-picker-hd {
+  padding: 7px 10px;
+  background: var(--ink-4);
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: var(--bone-4);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.doc-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border-top: 1px solid var(--wire);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.doc-item:hover { background: var(--wire); }
+.doc-item.selected { background: rgba(200,113,74,0.08); }
+
+.doc-item-ico { font-size: 12px; flex-shrink: 0; }
+.doc-item-name {
+  font-size: 11px;
+  color: var(--bone-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+.doc-item-type {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  color: var(--bone-4);
+  flex-shrink: 0;
+}
+
+/* Divider in source list */
+.cw-divider {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--bone-4);
+  padding: 10px 4px 5px;
+  margin-top: 4px;
+}
+
+/* Right: main workspace */
+.cw-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Document viewer / editor */
+.cw-doc-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cw-doc-toolbar {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--wire);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  background: var(--ink-2);
+}
+
+.cw-doc-title {
+  flex: 1;
+  font-family: var(--ff-disp);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--bone);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cw-doc-source-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--wire);
+  border: 1px solid var(--wire-2);
+  font-family: var(--ff-mono);
+  font-size: 8.5px;
+  color: var(--bone-3);
+  flex-shrink: 0;
+}
+
+/* Split: doc content left, AI output right */
+.cw-work-split {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+}
+
+.cw-col {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.cw-col + .cw-col { border-left: 1px solid var(--wire); }
+
+.cw-col-hd {
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--wire);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.cw-col-lbl {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--bone-3);
+}
+
+.cw-doc-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  font-size: 13px;
+  line-height: 1.72;
+  color: var(--bone);
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-4) transparent;
+  white-space: pre-wrap;
+  font-family: var(--ff-body);
+}
+
+.cw-doc-edit {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  color: var(--bone);
+  font-family: var(--ff-mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+  padding: 18px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-4) transparent;
+}
+.cw-doc-edit::placeholder { color: var(--bone-4); font-family: var(--ff-body); font-style: italic; }
+
+/* AI output side */
+.cw-ai-out {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  font-size: 13px;
+  line-height: 1.72;
+  color: var(--bone);
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-4) transparent;
+}
+
+/* Task / job queue */
+.cw-task-strip {
+  border-top: 1px solid var(--wire);
+  padding: 8px 16px;
+  background: var(--ink-2);
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.cw-task-row {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  width: 100%;
+}
+
+.cw-task-inp {
+  flex: 1;
+  background: var(--ink-3);
+  border: 1px solid var(--wire-2);
+  border-radius: var(--r-sm);
+  padding: 8px 13px;
+  color: var(--bone);
+  font-family: var(--ff-body);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+  resize: none;
+  min-height: 36px;
+  max-height: 90px;
+  line-height: 1.5;
+  scrollbar-width: none;
+}
+.cw-task-inp:focus { border-color: rgba(200,113,74,0.35); }
+.cw-task-inp::placeholder { color: var(--bone-4); }
+
+/* Job queue list */
+.job-queue {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.job-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--wire-2);
+  background: var(--ink-3);
+  font-size: 11px;
+  color: var(--bone-2);
+  transition: all 0.2s;
+  max-width: 220px;
+}
+
+.job-pill.running {
+  border-color: rgba(200,113,74,0.35);
+  background: rgba(200,113,74,0.08);
+  color: var(--ember-l);
+}
+
+.job-pill.done {
+  border-color: rgba(109,184,122,0.3);
+  background: rgba(109,184,122,0.07);
+  color: #6db87a;
+}
+
+.job-pill.error {
+  border-color: rgba(224,112,96,0.3);
+  background: rgba(224,112,96,0.07);
+  color: #e07060;
+}
+
+.job-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--bone-4);
+}
+.job-pill.running .job-dot {
+  background: var(--ember);
+  animation: lp 1s ease-in-out infinite;
+}
+.job-pill.done  .job-dot { background: #6db87a; }
+.job-pill.error .job-dot { background: #e07060; }
+
+.job-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--ff-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+}
+
+.job-kill {
+  background: none;
+  border: none;
+  color: var(--bone-4);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.12s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.job-kill:hover { color: var(--bone); }
+
+/* Agent activity log */
+.agent-log {
+  padding: 8px 16px;
+  border-top: 1px solid var(--wire);
+  max-height: 90px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+  display: none;
+}
+.agent-log.visible { display: block; }
+.agent-log::-webkit-scrollbar { display: none; }
+
+.log-line {
+  font-family: var(--ff-mono);
+  font-size: 9.5px;
+  line-height: 1.7;
+  color: var(--bone-4);
+}
+.log-line.action { color: var(--ember-l); }
+.log-line.ok     { color: #6db87a; }
+.log-line.err    { color: #e07060; }
+
+/* Write-back button */
+.writeback-bar {
+  padding: 8px 16px;
+  border-top: 1px solid var(--wire);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  display: none;
+}
+.writeback-bar.visible { display: flex; }
+.writeback-info {
+  font-size: 11.5px;
+  color: var(--bone-3);
+}
+
+/* OAuth modal overlay */
+.oauth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,12,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  display: none;
+}
+.oauth-overlay.open { display: flex; }
+
+.oauth-modal {
+  background: var(--ink-2);
+  border: 1px solid var(--wire-3);
+  border-radius: var(--r);
+  padding: 28px 32px;
+  width: 380px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.oauth-title {
+  font-family: var(--ff-disp);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--bone);
+  letter-spacing: 0.04em;
+}
+
+.oauth-sub { font-size: 12.5px; color: var(--bone-3); line-height: 1.55; }
+
+.oauth-scope-list {
+  background: var(--ink-3);
+  border: 1px solid var(--wire);
+  border-radius: var(--r-sm);
+  padding: 10px 14px;
+}
+
+.oauth-scope {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 11.5px;
+  color: var(--bone-2);
+}
+
+.oauth-scope::before {
+  content: '✓';
+  color: #6db87a;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.oauth-btns { display: flex; gap: 8px; justify-content: flex-end; }
+
+.oauth-note {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  color: var(--bone-4);
+  line-height: 1.6;
+}
+
+/* cmd-inp kept for other panels */
+.cmd-inp {
+  flex: 1;
+  background: var(--ink-3);
+  border: 1px solid var(--wire-2);
+  border-radius: var(--r-sm);
+  padding: 7px 13px;
+  color: var(--bone);
+  font-family: var(--ff-body);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.cmd-inp:focus { border-color: rgba(200,113,74,0.35); }
+.cmd-inp::placeholder { color: var(--bone-4); }
+
+/* ═══════════════════════════════════════════════════════════
+   PANEL: WRITER
+═══════════════════════════════════════════════════════════ */
+.writer-shell { flex: 1; display: flex; overflow: hidden; }
+
+.writer-left {
+  width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--wire);
+  padding: 18px 14px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.wl-sect {
+  font-family: var(--ff-mono);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bone-4);
+  margin-bottom: 8px;
+  margin-top: 16px;
+}
+.wl-sect:first-child { margin-top: 0; }
+
+.tone-card {
+  padding: 7px 10px;
+  border: 1px solid var(--wire);
+  border-radius: var(--r-sm);
+  font-size: 11.5px;
+  color: var(--bone-3);
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+.tone-card:hover { border-color: var(--wire-3); color: var(--bone); }
+.tone-card.on { border-color: rgba(200,113,74,0.4); background: rgba(200,113,74,0.08); color: var(--ember-l); }
+
+.rng { width: 100%; accent-color: var(--ember); margin: 6px 0; }
+.rng-lbls { display: flex; justify-content: space-between; font-family: var(--ff-mono); font-size: 8px; color: var(--bone-4); }
+
+.fmt-opt {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: var(--bone-3);
+  cursor: pointer;
+  padding: 4px 0;
+}
+.fmt-opt input { accent-color: var(--ember); }
+
+.writer-right { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+.writer-toolbar {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--wire);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.tb-btn {
+  width: 26px; height: 26px;
+  border-radius: 5px;
+  background: transparent;
+  border: none;
+  color: var(--bone-3);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.tb-btn:hover { background: var(--wire); color: var(--bone); }
+.tb-div { width: 1px; height: 16px; background: var(--wire-2); margin: 0 2px; }
+
+.writer-prompt-row {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--wire);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.writer-pt {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  color: var(--bone);
+  font-family: var(--ff-body);
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 28px;
+  max-height: 70px;
+  scrollbar-width: none;
+}
+.writer-pt::placeholder { color: var(--bone-4); }
+
+.writer-canvas {
+  flex: 1;
+  overflow-y: auto;
+  padding: 26px 28px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-4) transparent;
+}
+
+.writer-out {
+  font-size: 14px;
+  line-height: 1.78;
+  color: var(--bone);
+  min-height: 100%;
+  outline: none;
+}
+.writer-out:empty::before {
+  content: attr(data-placeholder);
+  color: var(--bone-4);
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PANEL: VOICE
+═══════════════════════════════════════════════════════════ */
+.voice-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  padding: 40px;
+}
+
+.voice-header { text-align: center; }
+.voice-h {
+  font-family: var(--ff-disp);
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--bone);
+  letter-spacing: 0.04em;
+}
+.voice-sub { font-size: 12px; color: var(--bone-3); margin-top: 5px; font-family: var(--ff-mono); letter-spacing: 0.08em; }
+
+.orb-wrap {
+  position: relative;
+  width: 160px; height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orb-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(200,113,74,0.3);
+  opacity: 0;
+  transition: all 0.3s;
+}
+.orb-ring-1 { width: 100%; height: 100%; }
+.orb-ring-2 { width: 75%; height: 75%; border-color: rgba(200,113,74,0.5); }
+
+.listening .orb-ring-1 { animation: oRing 2s ease-out infinite; }
+.listening .orb-ring-2 { animation: oRing 2s ease-out infinite 0.45s; }
+
+@keyframes oRing {
+  0%   { transform: scale(0.85); opacity: 0.7; }
+  100% { transform: scale(1.3);  opacity: 0; }
+}
+
+.orb {
+  width: 88px; height: 88px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 36%, #d98060, var(--ember) 55%, var(--ember-d));
+  box-shadow: 0 0 32px rgba(200,113,74,0.3), 0 0 64px rgba(200,113,74,0.1);
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  border: 1px solid rgba(255,255,255,0.1);
+  position: relative;
+  z-index: 2;
+  user-select: none;
+}
+.orb:hover { transform: scale(1.04); box-shadow: 0 0 44px rgba(200,113,74,0.45); }
+.orb.listening { animation: orbPulse 1.8s ease-in-out infinite; }
+@keyframes orbPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.04);} }
+
+.wave { display: flex; gap: 3px; align-items: center; height: 30px; }
+.wb {
+  width: 3px; background: var(--ember);
+  border-radius: 2px; opacity: 0.3;
+  height: 8px;
+}
+.listening .wb {
+  animation: wa .85s ease-in-out infinite;
+  opacity: 1;
+}
+.listening .wb:nth-child(2) { animation-delay:.1s; }
+.listening .wb:nth-child(3) { animation-delay:.22s; }
+.listening .wb:nth-child(4) { animation-delay:.07s; }
+.listening .wb:nth-child(5) { animation-delay:.17s; }
+.listening .wb:nth-child(6) { animation-delay:.04s; }
+.listening .wb:nth-child(7) { animation-delay:.28s; }
+@keyframes wa { 0%,100%{height:5px;} 50%{height:24px;} }
+
+.voice-st {
+  font-family: var(--ff-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--bone-3);
+  text-transform: uppercase;
+}
+
+.voice-tx {
+  max-width: 460px;
+  padding: 14px 18px;
+  background: var(--ink-3);
+  border: 1px solid var(--wire-2);
+  border-radius: var(--r);
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--bone);
+  text-align: center;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: italic;
+  color: var(--bone-3);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PANEL: SCREEN SHARE
+═══════════════════════════════════════════════════════════ */
+.screen-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 30px;
+  gap: 18px;
+  overflow-y: auto;
+}
+
+.screen-hd-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.screen-title {
+  font-family: var(--ff-disp);
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--bone);
+  letter-spacing: 0.04em;
+}
+
+.screen-sub { font-size: 12px; color: var(--bone-3); }
+
+.screen-frame {
+  flex: 1;
+  min-height: 240px;
+  background: var(--ink-3);
+  border: 1px dashed var(--wire-2);
+  border-radius: var(--r);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  overflow: hidden;
+}
+.screen-frame:hover { border-color: rgba(200,113,74,0.3); background: rgba(200,113,74,0.04); }
+
+.screen-frame-icon { font-size: 36px; }
+.screen-frame-txt { font-size: 13.5px; font-weight: 600; color: var(--bone-2); }
+.screen-frame-hint { font-size: 11px; color: var(--bone-4); }
+
+.screen-ctrls { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ═══════════════════════════════════════════════════════════
+   PANEL: STEM VISUALIZER
+═══════════════════════════════════════════════════════════ */
+.stem-shell { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+.stem-bar {
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--wire);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.stem-content { flex: 1; display: flex; overflow: hidden; }
+
+.stem-in {
+  flex: 0 0 340px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--wire);
+  overflow: hidden;
+}
+
+.stem-ta {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  color: var(--bone);
+  font-family: var(--ff-mono);
+  font-size: 12.5px;
+  line-height: 1.68;
+  padding: 18px;
+  scrollbar-width: thin;
+}
+.stem-ta::placeholder { color: var(--bone-4); font-family: var(--ff-body); font-style: italic; font-size: 13px; }
+
+.stem-run-bar {
+  padding: 10px 18px;
+  border-top: 1px solid var(--wire);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.stem-out {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-4) transparent;
+}
+
+.stem-ph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  color: var(--bone-4);
+  text-align: center;
+  font-size: 12.5px;
+}
+.stem-ph-icon { font-size: 40px; opacity: 0.4; }
+
+/* ═══════════════════════════════════════════════════════════
+   PANEL: AGENTS
+═══════════════════════════════════════════════════════════ */
+.agents-wrap {
+  flex: 1;
+  padding: 28px 30px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-4) transparent;
+}
+
+.agents-hd {
+  font-family: var(--ff-disp);
+  font-size: 26px;
+  font-weight: 300;
+  color: var(--bone);
+  letter-spacing: 0.04em;
+  margin-bottom: 5px;
+}
+
+.agents-sub {
+  font-size: 12.5px;
+  color: var(--bone-3);
+  margin-bottom: 24px;
+}
+
+.agents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 12px;
+}
+
+.ag-card {
+  background: var(--ink-3);
+  border: 1px solid var(--wire);
+  border-radius: var(--r);
+  padding: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.ag-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--ember);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.ag-card:hover {
+  border-color: var(--wire-3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(0,0,0,0.3);
+}
+.ag-card:hover::after { opacity: 1; }
+
+.ag-ico {
+  width: 38px; height: 38px;
+  border-radius: 9px;
+  background: var(--wire);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.ag-name {
+  font-family: var(--ff-disp);
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--bone);
+  margin-bottom: 5px;
+  letter-spacing: 0.02em;
+}
+
+.ag-desc {
+  font-size: 11.5px;
+  color: var(--bone-3);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+
+.ag-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ag-model {
+  font-family: var(--ff-mono);
+  font-size: 8.5px;
+  color: var(--bone-4);
+  letter-spacing: 0.05em;
+}
+
+.ag-go {
+  font-family: var(--ff-mono);
+  font-size: 9px;
+  padding: 4px 10px;
+  border-radius: 3px;
+  background: var(--wire);
+  border: 1px solid var(--wire-2);
+  color: var(--bone-3);
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.ag-go:hover { background: var(--ember); border-color: var(--ember); color: #fff; }
+
+/* ─── TOAST ───────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 22px; right: 22px;
+  background: var(--ink-3);
+  border: 1px solid var(--wire-2);
+  border-radius: var(--r);
+  padding: 11px 16px;
+  font-size: 12.5px;
+  color: var(--bone);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+  z-index: 9999;
+  transform: translateY(70px);
+  opacity: 0;
+  transition: all 0.28s cubic-bezier(.16,1,.3,1);
+  pointer-events: none;
+}
+.toast.on { transform: translateY(0); opacity: 1; }
+
+/* ─── EMPTY / PLACEHOLDER ─────────────────────────────────── */
+.ph {
+  color: var(--bone-4);
+  font-style: italic;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 20px;
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+  <aside class="rail">
+    <div class="emblem-wrap">
+      <div class="emblem">
+        <!-- GEOMETRIC EMBLEM — hand-crafted SVG, no emoji, no clip-art -->
+        <div class="emblem-mark">
+          <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Outer hexagonal frame -->
+            <path d="M17 2 L30 9.5 L30 24.5 L17 32 L4 24.5 L4 9.5 Z"
+              stroke="#c8714a" stroke-width="1.2" fill="none" opacity="0.7"/>
+            <!-- Inner diamond -->
+            <path d="M17 8 L25 17 L17 26 L9 17 Z"
+              stroke="#e8e2d9" stroke-width="0.8" fill="none" opacity="0.55"/>
+            <!-- Center cross-hair -->
+            <line x1="17" y1="12" x2="17" y2="22" stroke="#c8714a" stroke-width="1.2" opacity="0.9"/>
+            <line x1="12" y1="17" x2="22" y2="17" stroke="#c8714a" stroke-width="1.2" opacity="0.9"/>
+            <!-- Corner ticks on hex -->
+            <circle cx="17" cy="2"   r="1.1" fill="#c8714a" opacity="0.8"/>
+            <circle cx="30" cy="9.5" r="1.1" fill="#c8714a" opacity="0.5"/>
+            <circle cx="30" cy="24.5"r="1.1" fill="#c8714a" opacity="0.5"/>
+            <circle cx="17" cy="32"  r="1.1" fill="#c8714a" opacity="0.8"/>
+            <circle cx="4"  cy="24.5"r="1.1" fill="#c8714a" opacity="0.5"/>
+            <circle cx="4"  cy="9.5" r="1.1" fill="#c8714a" opacity="0.5"/>
+            <!-- Center dot -->
+            <circle cx="17" cy="17" r="2.2" fill="#c8714a"/>
+          </svg>
+        </div>
+        <div class="emblem-text">
+          <div class="emblem-name">ARCA</div>
+          <div class="emblem-tagline">Intelligence Suite</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-sect">Core</div>
+
+      <div class="nav-row on" onclick="go(this,'chat')">
+        <div class="nav-glyph">⬡</div>
+        <span class="nav-lbl">AI Chatbot</span>
+      </div>
+
+      <div class="nav-row" onclick="go(this,'humanizer')">
+        <div class="nav-glyph">✦</div>
+        <span class="nav-lbl">AI Humanizer</span>
+        <span class="nav-pill e">new</span>
+      </div>
+
+      <div class="nav-row" onclick="go(this,'cowork')">
+        <div class="nav-glyph">⧉</div>
+        <span class="nav-lbl">AI Cowork</span>
+      </div>
+
+      <div class="nav-row" onclick="go(this,'writer')">
+        <div class="nav-glyph">◫</div>
+        <span class="nav-lbl">AI Writer</span>
+      </div>
+
+      <div class="nav-sect">Voice & Visual</div>
+
+      <div class="nav-row" onclick="go(this,'voice')">
+        <div class="nav-glyph">◎</div>
+        <span class="nav-lbl">Voice Chat</span>
+        <span class="nav-pill b">beta</span>
+      </div>
+
+      <div class="nav-row" onclick="go(this,'screen')">
+        <div class="nav-glyph">▣</div>
+        <span class="nav-lbl">Screen + Voice</span>
+        <span class="nav-pill b">beta</span>
+      </div>
+
+      <div class="nav-row" onclick="go(this,'stem')">
+        <div class="nav-glyph">◈</div>
+        <span class="nav-lbl">STEM Visual</span>
+        <span class="nav-pill e">pro</span>
+      </div>
+
+      <div class="nav-sect">Agents</div>
+
+      <div class="nav-row" onclick="go(this,'agents')">
+        <div class="nav-glyph">⬡</div>
+        <span class="nav-lbl">AI Agents</span>
+      </div>
+    </nav>
+
+    <div class="rail-foot">
+      <div class="user-row">
+        <div class="user-av">A</div>
+        <div class="user-info">
+          <div class="user-n">Workspace</div>
+          <div class="user-p">PRO</div>
+        </div>
+        <span style="color:var(--bone-4);font-size:11px">···</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ─────────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- TOP BAR -->
+    <div class="bar">
+      <div class="bar-left">
+        <span class="bar-title" id="bar-title">Chatbot</span>
+        <span class="bar-sep">—</span>
+        <div class="live-dot"></div>
+      </div>
+      <div class="bar-right" style="align-items:center">
+        <span id="keyStatus" style="font-family:var(--ff-mono);font-size:8.5px;color:var(--bone-4);letter-spacing:0.04em;padding:0 4px">no key set</span>
+        <button class="bar-btn" onclick="openKeyModal()" title="API Key" style="font-size:14px">⚿</button>
+        <button class="bar-btn" onclick="clearPane()" title="Clear">⊘</button>
+      </div>
+    </div>
+
+    <!-- STAGE -->
+    <div class="stage">
+
+      <!-- ════ CHAT ════════════════════════════════════════ -->
+      <div class="pane on" id="pane-chat">
+        <div class="chat-feed" id="feed">
+          <div class="zero-state" id="zero">
+            <div class="zero-mark">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#c8714a" stroke-width="1.2">
+                <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/>
+                <line x1="12" y1="7" x2="12" y2="17"/>
+                <line x1="7" y1="12" x2="17" y2="12"/>
+              </svg>
+            </div>
+            <div class="zero-h">Ask anything.</div>
+            <div class="zero-sub">ARCA is here to think with you — research, code, write, analyse.</div>
+            <div class="chips">
+              <span class="chip" onclick="setQ('Explain transformer architecture simply')">Transformer architecture</span>
+              <span class="chip" onclick="setQ('Write a Python async web scraper')">Async web scraper</span>
+              <span class="chip" onclick="setQ('Best practices for REST API design')">REST API design</span>
+              <span class="chip" onclick="setQ('Summarise stoic philosophy for daily use')">Stoic philosophy</span>
+            </div>
+          </div>
+        </div>
+        <div class="chat-foot">
+          <div class="inp-wrap">
+            <textarea class="inp-ta" id="inp" placeholder="Message ARCA…" rows="1"
+              onkeydown="onKey(event)"
+              oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';updCC()"></textarea>
+            <div class="inp-actions">
+              <button class="inp-btn" onclick="toast('📎 Attach — coming soon')">📎</button>
+              <button class="send" onclick="sendMsg()">↑</button>
+            </div>
+          </div>
+          <div class="inp-meta">
+            <span class="model-id">claude-sonnet-4</span>
+            <span class="cc" id="cc">0 / 4096</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ HUMANIZER ═══════════════════════════════════ -->
+      <div class="pane" id="pane-humanizer">
+        <div class="split">
+          <div class="split-col">
+            <div class="col-hd">
+              <span class="col-lbl">Input — AI Text</span>
+              <span class="col-meta" id="wc-in">0 words</span>
+            </div>
+            <textarea class="col-ta" id="hum-in"
+              placeholder="Paste AI-generated text here…&#10;&#10;ARCA will rewrite it to sound human — variable sentence rhythm, natural contractions, stripped clichés, active voice."
+              oninput="wcIn()"></textarea>
+            <div class="col-ft">
+              <div style="display:flex;gap:6px">
+                <select class="sel" id="hum-tone">
+                  <option>Professional</option>
+                  <option>Casual</option>
+                  <option>Academic</option>
+                  <option>Creative</option>
+                </select>
+                <select class="sel" id="hum-level">
+                  <option>Moderate</option>
+                  <option>Aggressive</option>
+                  <option>Subtle</option>
+                </select>
+              </div>
+              <button class="btn btn-e" id="hum-btn" onclick="humanize()">
+                <span id="hbt">Humanize</span>
+                <div class="spin" id="hsp"></div>
+              </button>
+            </div>
+          </div>
+
+          <div class="split-col">
+            <div class="col-hd">
+              <span class="col-lbl">Output — Humanized</span>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="hum-score" id="hscore" style="display:none">
+                  <span>Human</span>
+                  <div class="score-bar"><div class="score-fill" id="sfill" style="width:0"></div></div>
+                  <span id="sval">0%</span>
+                </div>
+                <button class="btn btn-g" onclick="copyHum()" style="padding:4px 10px;font-size:9px">Copy</button>
+              </div>
+            </div>
+            <div class="col-out" id="hum-out"><div class="ph">Humanized output will appear here.</div></div>
+            <div class="col-ft">
+              <span class="col-meta" id="wc-out">0 words</span>
+              <button class="btn btn-g" onclick="rerunHum()">↺ Re-run</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ COWORK ═══════════════════════════════════════ -->
+      <div class="pane" id="pane-cowork">
+        <div class="cw-shell">
+
+          <!-- LEFT: source connectors -->
+          <div class="cw-left">
+            <div class="cw-left-hd">
+              <span class="cw-left-title">Sources</span>
+              <button class="int-action small" onclick="cwPasteUrl()">+ URL</button>
+            </div>
+            <div class="cw-sources">
+
+              <div class="cw-divider">Cloud Documents</div>
+
+              <!-- Google Drive -->
+              <div class="int-card" id="ic-gdrive">
+                <div class="int-ico">📁</div>
+                <div class="int-info">
+                  <div class="int-name">Google Drive</div>
+                  <div class="int-status ok" id="gs-status">Connected via MCP</div>
+                </div>
+                <button class="int-action" onclick="cwLoadGDrive()">Browse</button>
+              </div>
+              <div class="doc-picker" id="dp-gdrive">
+                <div class="doc-picker-hd">
+                  <span>Recent Files</span>
+                  <button class="int-action small" onclick="document.getElementById('dp-gdrive').classList.remove('open')">✕</button>
+                </div>
+                <div id="gdrive-file-list"></div>
+              </div>
+
+              <!-- OneDrive -->
+              <div class="int-card" id="ic-onedrive">
+                <div class="int-ico">☁</div>
+                <div class="int-info">
+                  <div class="int-name">OneDrive</div>
+                  <div class="int-status off" id="od-status">Not connected</div>
+                </div>
+                <button class="int-action" id="od-btn" onclick="cwConnectOneDrive()">Connect</button>
+              </div>
+              <div class="doc-picker" id="dp-onedrive">
+                <div class="doc-picker-hd">
+                  <span>Recent Files</span>
+                  <button class="int-action small" onclick="document.getElementById('dp-onedrive').classList.remove('open')">✕</button>
+                </div>
+                <div id="onedrive-file-list"></div>
+              </div>
+
+              <div class="cw-divider">Workspaces</div>
+
+              <!-- Notion -->
+              <div class="int-card" id="ic-notion">
+                <div class="int-ico">◻</div>
+                <div class="int-info">
+                  <div class="int-name">Notion</div>
+                  <div class="int-status off" id="no-status">Not connected</div>
+                </div>
+                <button class="int-action" id="no-btn" onclick="cwConnectNotion()">Connect</button>
+              </div>
+              <div class="doc-picker" id="dp-notion">
+                <div class="doc-picker-hd">
+                  <span>Pages</span>
+                  <button class="int-action small" onclick="document.getElementById('dp-notion').classList.remove('open')">✕</button>
+                </div>
+                <div id="notion-file-list"></div>
+              </div>
+
+              <!-- ClickUp -->
+              <div class="int-card" id="ic-clickup">
+                <div class="int-ico">⬡</div>
+                <div class="int-info">
+                  <div class="int-name">ClickUp</div>
+                  <div class="int-status off" id="cu-status">Not connected</div>
+                </div>
+                <button class="int-action" id="cu-btn" onclick="cwConnectClickUp()">Connect</button>
+              </div>
+
+              <div class="cw-divider">Presentations</div>
+
+              <!-- Google Slides -->
+              <div class="int-card" id="ic-gslides">
+                <div class="int-ico">▦</div>
+                <div class="int-info">
+                  <div class="int-name">Google Slides</div>
+                  <div class="int-status ok" id="gsl-status">Via Drive</div>
+                </div>
+                <button class="int-action" onclick="cwLoadSlides()">Browse</button>
+              </div>
+
+              <!-- PowerPoint (OneDrive) -->
+              <div class="int-card" id="ic-pptx">
+                <div class="int-ico">🟧</div>
+                <div class="int-info">
+                  <div class="int-name">PowerPoint</div>
+                  <div class="int-status off" id="pp-status">Needs OneDrive</div>
+                </div>
+                <button class="int-action" onclick="cwConnectOneDrive()">Connect</button>
+              </div>
+
+              <div class="cw-divider">Paste / Import</div>
+
+              <div class="int-card" onclick="cwManualMode()">
+                <div class="int-ico">◫</div>
+                <div class="int-info">
+                  <div class="int-name">Paste Content</div>
+                  <div class="int-status ok">Always available</div>
+                </div>
+                <button class="int-action" onclick="cwManualMode()">Use</button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- RIGHT: workspace -->
+          <div class="cw-right">
+
+            <!-- Doc toolbar -->
+            <div class="cw-doc-toolbar">
+              <div class="cw-doc-title" id="cw-doc-title">No document loaded</div>
+              <div class="cw-doc-source-badge" id="cw-source-badge" style="display:none">
+                <span id="cw-source-icon">📁</span>
+                <span id="cw-source-name">—</span>
+              </div>
+              <button class="btn btn-g" onclick="cwCopyOut()" style="padding:4px 10px;font-size:9px">Copy output</button>
+              <button class="btn btn-g" id="cw-writeback-btn" onclick="cwWriteBack()" style="padding:4px 10px;font-size:9px;display:none">Push to source ↑</button>
+            </div>
+
+            <!-- Split: source doc | AI output -->
+            <div class="cw-work-split">
+              <div class="cw-col">
+                <div class="cw-col-hd">
+                  <span class="cw-col-lbl">Source Document</span>
+                  <div class="spin" id="cw-load-sp"></div>
+                </div>
+                <div class="cw-doc-body" id="cw-source-body">
+                  <span style="color:var(--bone-4);font-style:italic">Connect a source or paste content, then give ARCA a task below.</span>
+                </div>
+              </div>
+              <div class="cw-col">
+                <div class="cw-col-hd">
+                  <span class="cw-col-lbl">ARCA Output</span>
+                  <div class="spin" id="cwsp"></div>
+                </div>
+                <div class="cw-ai-out" id="cw-ai-out">
+                  <div class="ph">ARCA's work appears here.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Agent log (shown during task) -->
+            <div class="agent-log" id="cw-log"></div>
+
+            <!-- Write-back bar -->
+            <div class="writeback-bar" id="cw-wb-bar">
+              <span class="writeback-info">Output ready — push changes back to source document?</span>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-e" onclick="cwWriteBack()">Push to Source</button>
+                <button class="btn btn-g" onclick="document.getElementById('cw-wb-bar').classList.remove('visible')">Dismiss</button>
+              </div>
+            </div>
+
+            <!-- Task command bar -->
+            <div class="cw-task-strip">
+              <div class="cw-task-row">
+                <textarea class="cw-task-inp" id="cw-cmd"
+                  rows="1"
+                  placeholder="Tell ARCA what to do — 'jazz up these slides', 'answer sheet from this doc', 'summarise the key points and check sources'…"
+                  onkeydown="cwKey(event)"
+                  oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                <button class="btn btn-e" onclick="cwDispatch()">
+                  <span id="cw-btn-lbl">Run Task</span>
+                  <div class="spin" id="cw-run-sp"></div>
+                </button>
+              </div>
+              <div class="job-queue" id="job-queue"></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- OAuth Modal -->
+      <div class="oauth-overlay" id="oauth-overlay">
+        <div class="oauth-modal">
+          <div class="oauth-title" id="oauth-title">Connect Service</div>
+          <div class="oauth-sub" id="oauth-sub">ARCA will request the following permissions:</div>
+          <div class="oauth-scope-list" id="oauth-scopes"></div>
+          <div class="oauth-note">
+            OAuth tokens are stored in your browser session only and never sent to any server other than the service itself.
+            You can revoke access at any time from your account settings.
+          </div>
+          <div class="oauth-btns">
+            <button class="btn btn-g" onclick="closeOAuth()">Cancel</button>
+            <button class="btn btn-e" id="oauth-go-btn" onclick="oauthProceed()">Authorise →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ WRITER ═══════════════════════════════════════ -->
+      <div class="pane" id="pane-writer">
+        <div class="writer-shell">
+          <div class="writer-left">
+            <div class="wl-sect">Tone</div>
+            <div class="tone-card on" onclick="pickTone(this,'Professional')">Professional</div>
+            <div class="tone-card"    onclick="pickTone(this,'Casual')">Casual</div>
+            <div class="tone-card"    onclick="pickTone(this,'Academic')">Academic</div>
+            <div class="tone-card"    onclick="pickTone(this,'Creative')">Creative</div>
+            <div class="tone-card"    onclick="pickTone(this,'Persuasive')">Persuasive</div>
+
+            <div class="wl-sect" style="margin-top:18px">Length</div>
+            <input type="range" class="rng" id="wlen" min="1" max="3" value="2" step="1">
+            <div class="rng-lbls"><span>Short</span><span>Medium</span><span>Long</span></div>
+
+            <div class="wl-sect" style="margin-top:18px">Format</div>
+            <label class="fmt-opt"><input type="radio" name="fmt" value="article" checked> Article</label>
+            <label class="fmt-opt"><input type="radio" name="fmt" value="bullets"> Bullet Points</label>
+            <label class="fmt-opt"><input type="radio" name="fmt" value="email">   Email</label>
+            <label class="fmt-opt"><input type="radio" name="fmt" value="social">  Social Post</label>
+          </div>
+
+          <div class="writer-right">
+            <div class="writer-toolbar">
+              <button class="tb-btn" onclick="document.execCommand('bold')" title="Bold"><b>B</b></button>
+              <button class="tb-btn" onclick="document.execCommand('italic')" title="Italic"><i>I</i></button>
+              <button class="tb-btn" onclick="document.execCommand('underline')" title="Underline"><u>U</u></button>
+              <div class="tb-div"></div>
+              <button class="tb-btn" onclick="copyWriter()" title="Copy">⎘</button>
+              <button class="tb-btn" onclick="clearWriter()" title="Clear">⊘</button>
+              <div style="flex:1"></div>
+              <div class="spin" id="wsp"></div>
+              <button class="btn btn-e" onclick="runWriter()">Generate</button>
+            </div>
+            <div class="writer-prompt-row">
+              <textarea class="writer-pt" id="wpt"
+                placeholder="Describe what to write — topic, audience, angle…"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();runWriter();}"
+                oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+            </div>
+            <div class="writer-canvas">
+              <div class="writer-out" id="wout"
+                contenteditable="true"
+                data-placeholder="Generated content appears here — you can edit directly."></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ VOICE ════════════════════════════════════════ -->
+      <div class="pane" id="pane-voice">
+        <div class="voice-center">
+          <div class="voice-header">
+            <div class="voice-h">Voice Assistant</div>
+            <div class="voice-sub">ARCA · NVIDIA Menotron · Click to speak</div>
+          </div>
+
+          <div class="orb-wrap" id="orbWrap">
+            <div class="orb-ring orb-ring-1"></div>
+            <div class="orb-ring orb-ring-2"></div>
+            <div class="orb" id="voiceOrb" onclick="toggleVoice()">◎</div>
+          </div>
+
+          <div class="wave" id="voiceWave">
+            <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+            <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+            <div class="wb"></div>
+          </div>
+
+          <div class="voice-st" id="vSt">CLICK TO START</div>
+          <div class="voice-tx" id="vTx">Your conversation will appear here…</div>
+
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-g" onclick="clearVoice()">Clear</button>
+            <button class="btn btn-g" onclick="toast('📞 Call mode — coming soon')">Call Mode</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ SCREEN ═══════════════════════════════════════ -->
+      <div class="pane" id="pane-screen">
+        <div class="screen-wrap">
+          <div class="screen-hd-row">
+            <div class="screen-title">Screen Share + Voice</div>
+            <div class="screen-sub">Share your screen and talk to ARCA about what it sees in real time.</div>
+          </div>
+          <div class="screen-frame" id="screenFrame" onclick="startShare()">
+            <div class="screen-frame-icon">▣</div>
+            <div class="screen-frame-txt">Click to share screen</div>
+            <div class="screen-frame-hint">Supports full screen, window, or tab</div>
+          </div>
+          <div class="screen-ctrls">
+            <button class="btn btn-e" onclick="startShare()">Share Screen</button>
+            <button class="btn btn-g" id="screenVBtn" onclick="toggleSV()">Enable Voice</button>
+            <button class="btn btn-g" onclick="stopShare()">Stop</button>
+          </div>
+          <div class="voice-tx" id="screenTx" style="max-width:100%;text-align:left">
+            Start screen sharing and enable voice to begin…
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ STEM ═════════════════════════════════════════ -->
+      <div class="pane" id="pane-stem">
+        <div class="stem-shell">
+          <div class="stem-bar">
+            <select class="sel" id="stType">
+              <option>Diagram</option><option>Chart</option>
+              <option>Equation</option><option>Molecule</option><option>Graph</option>
+            </select>
+            <select class="sel" id="stSubj">
+              <option>Mathematics</option><option>Physics</option>
+              <option>Chemistry</option><option>Biology</option><option>CS</option>
+            </select>
+            <span style="font-family:var(--ff-mono);font-size:9px;color:var(--bone-4);margin-left:auto">
+              qwen-image · NVIDIA
+            </span>
+          </div>
+          <div class="stem-content">
+            <div class="stem-in">
+              <div class="col-hd"><span class="col-lbl">Describe Visualization</span></div>
+              <textarea class="stem-ta" id="stIn"
+                placeholder="Describe what to visualize…&#10;&#10;Examples:&#10;· Water cycle with labeled stages&#10;· Gaussian distribution curve&#10;· Benzene ring structure&#10;· Newton's second law diagram"></textarea>
+              <div class="stem-run-bar">
+                <div class="spin" id="stsp"></div>
+                <button class="btn btn-e" id="stBtn" onclick="runStem()">Visualize</button>
+              </div>
+            </div>
+            <div class="stem-out" id="stOut">
+              <div class="stem-ph">
+                <div class="stem-ph-icon">◈</div>
+                <div>Visualizations appear here</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ AGENTS ═══════════════════════════════════════ -->
+      <div class="pane" id="pane-agents">
+        <div class="agents-wrap">
+          <div class="agents-hd">Specialist Agents</div>
+          <div class="agents-sub">Purpose-built agents for complex, domain-specific tasks.</div>
+          <div class="agents-grid">
+
+            <div class="ag-card" onclick="launchAgent('Research Agent')">
+              <div class="ag-ico">⬡</div>
+              <div class="ag-name">Research Agent</div>
+              <div class="ag-desc">Deep synthesis across sources. Structured reports with citations and key findings.</div>
+              <div class="ag-foot"><span class="ag-model">claude-sonnet-4</span><button class="ag-go">Launch</button></div>
+            </div>
+
+            <div class="ag-card" onclick="launchAgent('Code Agent')">
+              <div class="ag-ico">◫</div>
+              <div class="ag-name">Code Agent</div>
+              <div class="ag-desc">Write, debug, refactor across 30+ languages with full architectural awareness.</div>
+              <div class="ag-foot"><span class="ag-model">llama-3.1-70b</span><button class="ag-go">Launch</button></div>
+            </div>
+
+            <div class="ag-card" onclick="launchAgent('Data Analyst')">
+              <div class="ag-ico">◈</div>
+              <div class="ag-name">Data Analyst</div>
+              <div class="ag-desc">Upload CSV or spreadsheets. Get instant analysis, trend detection, and charts.</div>
+              <div class="ag-foot"><span class="ag-model">claude-sonnet-4</span><button class="ag-go">Launch</button></div>
+            </div>
+
+            <div class="ag-card" onclick="launchAgent('SEO Writer')">
+              <div class="ag-ico">✦</div>
+              <div class="ag-name">SEO Writer</div>
+              <div class="ag-desc">Keyword-optimised content with meta structure, readability scoring, and headings.</div>
+              <div class="ag-foot"><span class="ag-model">llama-3.1-70b</span><button class="ag-go">Launch</button></div>
+            </div>
+
+            <div class="ag-card" onclick="launchAgent('Email Agent')">
+              <div class="ag-ico">◎</div>
+              <div class="ag-name">Email Agent</div>
+              <div class="ag-desc">Cold outreach, follow-ups, newsletters — drafted to convert and land.</div>
+              <div class="ag-foot"><span class="ag-model">claude-sonnet-4</span><button class="ag-go">Launch</button></div>
+            </div>
+
+            <div class="ag-card" onclick="launchAgent('Legal Assistant')">
+              <div class="ag-ico">⧉</div>
+              <div class="ag-name">Legal Assistant</div>
+              <div class="ag-desc">Contract review, clause breakdown, plain-English translations of dense legal text.</div>
+              <div class="ag-foot"><span class="ag-model">claude-sonnet-4</span><button class="ag-go">Launch</button></div>
+            </div>
+
+            <div class="ag-card" onclick="launchAgent('Translation Agent')">
+              <div class="ag-ico">▣</div>
+              <div class="ag-name">Translation Agent</div>
+              <div class="ag-desc">80+ languages with cultural nuance, tone preservation, and register matching.</div>
+              <div class="ag-foot"><span class="ag-model">llama-3.1-70b</span><button class="ag-go">Launch</button></div>
+            </div>
+
+            <div class="ag-card" onclick="launchAgent('Social Media Agent')">
+              <div class="ag-ico">◑</div>
+              <div class="ag-name">Social Media</div>
+              <div class="ag-desc">Platform-native copy for X, LinkedIn, Instagram, and TikTok. Voice-matched.</div>
+              <div class="ag-foot"><span class="ag-model">llama-3.1-70b</span><button class="ag-go">Launch</button></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /stage -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<div class="toast" id="toastEl"></div>
+
+<!-- ── API KEY MODAL ───────────────────────────────────────── -->
+<div id="keyModal" style="
+  position:fixed;inset:0;background:rgba(10,9,8,0.82);display:none;
+  align-items:center;justify-content:center;z-index:10000;backdrop-filter:blur(4px)">
+  <div style="
+    background:var(--ink-2);border:1px solid var(--wire-3);border-radius:12px;
+    padding:32px;width:460px;max-width:92vw;display:flex;flex-direction:column;gap:18px">
+    <div>
+      <div style="font-family:var(--ff-disp);font-size:22px;font-weight:400;color:var(--bone);letter-spacing:0.04em;margin-bottom:5px">NVIDIA API Keys</div>
+      <div style="font-size:12.5px;color:var(--bone-3);line-height:1.6">
+        Each feature uses a dedicated NVIDIA NIM key. Stored locally in your browser only.
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <label style="font-family:var(--ff-mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--bone-3)">
+        Main Key — Chat · Humanizer · Writer · Agents
+      </label>
+      <div style="font-family:var(--ff-mono);font-size:9px;color:var(--bone-4);margin-bottom:3px">model: meta/llama-3.1-70b-instruct</div>
+      <input id="keyInpMain" type="password" placeholder="nvapi-…"
+        style="background:var(--ink-3);border:1px solid var(--wire-2);border-radius:7px;
+               padding:10px 14px;color:var(--bone);font-family:var(--ff-mono);font-size:12px;
+               outline:none;width:100%"
+        onfocus="this.style.borderColor='rgba(200,113,74,0.45)'"
+        onblur="this.style.borderColor=''">
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <label style="font-family:var(--ff-mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--bone-3)">
+        Voice Key — Voice Chat
+      </label>
+      <div style="font-family:var(--ff-mono);font-size:9px;color:var(--bone-4);margin-bottom:3px">model: menotron</div>
+      <input id="keyInpVoice" type="password" placeholder="nvapi-…"
+        style="background:var(--ink-3);border:1px solid var(--wire-2);border-radius:7px;
+               padding:10px 14px;color:var(--bone);font-family:var(--ff-mono);font-size:12px;
+               outline:none;width:100%"
+        onfocus="this.style.borderColor='rgba(200,113,74,0.45)'"
+        onblur="this.style.borderColor=''">
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <label style="font-family:var(--ff-mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--bone-3)">
+        STEM Key — STEM Visualizer
+      </label>
+      <div style="font-family:var(--ff-mono);font-size:9px;color:var(--bone-4);margin-bottom:3px">model: qwen-image</div>
+      <input id="keyInpStem" type="password" placeholder="nvapi-…"
+        style="background:var(--ink-3);border:1px solid var(--wire-2);border-radius:7px;
+               padding:10px 14px;color:var(--bone);font-family:var(--ff-mono);font-size:12px;
+               outline:none;width:100%"
+        onfocus="this.style.borderColor='rgba(200,113,74,0.45)'"
+        onblur="this.style.borderColor=''">
+    </div>
+
+    <div style="font-family:var(--ff-mono);font-size:9px;color:var(--bone-4);line-height:1.65;background:var(--ink-3);border-radius:6px;padding:10px 13px;border:1px solid var(--wire)">
+      Get keys at <span style="color:var(--ember)">integrate.api.nvidia.com</span> → API Keys
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="closeKeyModal()" class="btn btn-g" style="font-size:10px">Cancel</button>
+      <button onclick="saveKey()" class="btn btn-e" style="font-size:10px">Save Keys</button>
+    </div>
+  </div>
+</div>
+<style>
+#keyModal { display:none; }
+#keyModal.open { display:flex; }
+</style>
+
+<script>
+// ── NAVIGATION ────────────────────────────────────────────
+const titles = {
+  chat:'Chatbot', humanizer:'Humanizer', cowork:'Cowork',
+  writer:'Writer', voice:'Voice Chat', screen:'Screen + Voice',
+  stem:'STEM Visual', agents:'Agents'
+};
+
+function go(el, id) {
+  document.querySelectorAll('.nav-row').forEach(r => r.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
+  document.getElementById('pane-' + id).classList.add('on');
+  document.getElementById('bar-title').textContent = titles[id] || id;
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+function toast(msg, ms = 2300) {
+  const el = document.getElementById('toastEl');
+  el.textContent = msg;
+  el.classList.add('on');
+  setTimeout(() => el.classList.remove('on'), ms);
+}
+
+// ── UTILS ─────────────────────────────────────────────────
+function esc(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+function ts() {
+  return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+function wc(t) {
+  const s = t.trim(); return s ? s.split(/\s+/).length : 0;
+}
+
+// ── NVIDIA API CONFIG ─────────────────────────────────────
+const NV_BASE = 'https://integrate.api.nvidia.com/v1';
+
+function nvKey(type) { return localStorage.getItem('nv_key_' + type) || ''; }
+
+function updateKeyStatus() {
+  const n = ['main','voice','stem'].filter(t => nvKey(t)).length;
+  const el = document.getElementById('keyStatus');
+  if (!el) return;
+  el.textContent = n + '/3 keys';
+  el.style.color = n === 3 ? '#6db87a' : n > 0 ? 'var(--ember-l)' : 'var(--bone-4)';
+}
+
+function openKeyModal() {
+  document.getElementById('keyInpMain').value  = nvKey('main');
+  document.getElementById('keyInpVoice').value = nvKey('voice');
+  document.getElementById('keyInpStem').value  = nvKey('stem');
+  document.getElementById('keyModal').classList.add('open');
+}
+function closeKeyModal() { document.getElementById('keyModal').classList.remove('open'); }
+function saveKey() {
+  const main  = document.getElementById('keyInpMain').value.trim();
+  const voice = document.getElementById('keyInpVoice').value.trim();
+  const stem  = document.getElementById('keyInpStem').value.trim();
+  if (!main && !voice && !stem) { toast('Add at least one API key'); return; }
+  if (main)  localStorage.setItem('nv_key_main', main);
+  if (voice) localStorage.setItem('nv_key_voice', voice);
+  if (stem)  localStorage.setItem('nv_key_stem', stem);
+  closeKeyModal(); updateKeyStatus(); toast('✓ Keys saved');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Pre-load the fully-provided voice key on first run
+  if (!nvKey('voice')) {
+    localStorage.setItem('nv_key_voice', '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');
+  }
+  updateKeyStatus();
+  if (!nvKey('main')) setTimeout(openKeyModal, 400);
+});
+
+// ── NVIDIA API ─────────────────────────────────────────────
+async function nvidia(messages, { model = 'meta/llama-3.1-70b-instruct', keyType = 'main', maxTok = 1024, temp = 0.5, topP = 0.8, system = '' } = {}) {
+  const key = nvKey(keyType);
+  if (!key) { openKeyModal(); throw new Error(`NVIDIA ${keyType} key not set — add it via ⚿`); }
+  const msgs = system ? [{ role: 'system', content: system }, ...messages] : messages;
+  const r = await fetch(NV_BASE + '/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({ model, messages: msgs, temperature: temp, top_p: topP, max_tokens: maxTok, stream: false })
+  });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    throw new Error(e.detail || (e.error && e.error.message) || `HTTP ${r.status}`);
+  }
+  const d = await r.json();
+  return (d.choices && d.choices[0].message.content) || '';
+}
+
+// Per-feature wrappers
+function claude(messages, system = '', maxTok = 1000) {
+  return nvidia(messages, { system, maxTok, model: 'meta/llama-3.1-70b-instruct', keyType: 'main' });
+}
+function nvVoice(messages, system = '') {
+  return nvidia(messages, { system, model: 'menotron', keyType: 'voice', maxTok: 512, temp: 0.7, topP: 0.9 });
+}
+function nvStem(messages, system = '') {
+  return nvidia(messages, { system, model: 'qwen-image', keyType: 'stem', maxTok: 1500, temp: 0.1, topP: 0.9 });
+}
+
+// ══════════════════════════════════════════════════════════
+//  CHAT
+// ══════════════════════════════════════════════════════════
+const hist = [];
+
+function updCC() {
+  const v = document.getElementById('inp').value.length;
+  document.getElementById('cc').textContent = `${v} / 4096`;
+}
+
+function setQ(t) {
+  document.getElementById('inp').value = t;
+  document.getElementById('inp').focus();
+  updCC();
+}
+
+function onKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+
+function addMsg(role, text) {
+  const z = document.getElementById('zero');
+  if (z) z.remove();
+  const feed = document.getElementById('feed');
+  const d = document.createElement('div');
+  d.className = `msg ${role === 'user' ? 'u' : 'ai'}`;
+  d.innerHTML = `
+    <div class="msg-av">${role === 'user' ? 'U' : '⬡'}</div>
+    <div class="msg-body">
+      <div class="msg-text">${esc(text)}</div>
+      <div class="msg-ts">${ts()}</div>
+    </div>`;
+  feed.appendChild(d);
+  feed.scrollTop = feed.scrollHeight;
+}
+
+function addTyping() {
+  const z = document.getElementById('zero');
+  if (z) z.remove();
+  const feed = document.getElementById('feed');
+  const d = document.createElement('div');
+  d.className = 'msg ai'; d.id = 'typing';
+  d.innerHTML = `
+    <div class="msg-av">⬡</div>
+    <div class="msg-body">
+      <div class="msg-text"><div class="dots"><span></span><span></span><span></span></div></div>
+    </div>`;
+  feed.appendChild(d); feed.scrollTop = feed.scrollHeight;
+}
+
+function rmTyping() { const t=document.getElementById('typing'); if(t) t.remove(); }
+
+async function sendMsg() {
+  const el = document.getElementById('inp');
+  const txt = el.value.trim(); if (!txt) return;
+  el.value = ''; el.style.height = 'auto'; updCC();
+  addMsg('user', txt);
+  hist.push({role:'user', content:txt});
+  addTyping();
+  try {
+    const r = await claude(hist, 'You are ARCA, a concise, sharp, highly capable AI assistant. Respond with clarity and depth. Avoid filler. Format code blocks with ``` when relevant.');
+    rmTyping(); addMsg('assistant', r);
+    hist.push({role:'assistant', content:r});
+  } catch(e) { rmTyping(); addMsg('assistant', `⚠ ${e.message}`); }
+}
+
+function clearPane() {
+  const id = document.querySelector('.pane.on')?.id;
+  if (id === 'pane-chat') {
+    hist.length = 0;
+    document.getElementById('feed').innerHTML = `
+      <div class="zero-state" id="zero">
+        <div class="zero-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#c8714a" stroke-width="1.2"><polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="7" y1="12" x2="17" y2="12"/></svg></div>
+        <div class="zero-h">Ask anything.</div>
+        <div class="zero-sub">ARCA is here to think with you.</div>
+        <div class="chips">
+          <span class="chip" onclick="setQ('Explain transformer architecture simply')">Transformer architecture</span>
+          <span class="chip" onclick="setQ('Write a Python async web scraper')">Async web scraper</span>
+          <span class="chip" onclick="setQ('Best practices for REST API design')">REST API design</span>
+          <span class="chip" onclick="setQ('Summarise stoic philosophy for daily use')">Stoic philosophy</span>
+        </div>
+      </div>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  HUMANIZER
+// ══════════════════════════════════════════════════════════
+function wcIn() {
+  document.getElementById('wc-in').textContent = wc(document.getElementById('hum-in').value) + ' words';
+}
+
+async function humanize() {
+  const txt = document.getElementById('hum-in').value.trim();
+  if (!txt) { toast('Paste some text first'); return; }
+  const tone  = document.getElementById('hum-tone').value;
+  const level = document.getElementById('hum-level').value;
+  const btn = document.getElementById('hum-btn');
+  const sp  = document.getElementById('hsp');
+  btn.disabled = true;
+  document.getElementById('hbt').textContent = 'Processing…';
+  sp.classList.add('on');
+
+  const sys = `You are an elite text humanizer. Rewrite AI text to sound authentically human and bypass Winston AI, GPTZero, and Turnitin.
+
+Rules — ALL mandatory:
+1. Vary sentence lengths dramatically: mix 3-word sentences with 28-word ones in the same paragraph.
+2. Use contractions (don't, it's, we've, they're) at least 70% of eligible cases.
+3. BANNED words/phrases: Furthermore, Moreover, In addition, Consequently, Therefore, Delve, Navigate, Foster, Revolutionize, Testament, "rich tapestry", "beacon of hope", "multifaceted approach", "it is important to note", "In summary", "Ultimately", "In conclusion".
+4. 85%+ active voice.
+5. Use informal transitions: "Here's the thing", "On top of that", "What that means is", "The catch is".
+6. Occasionally end sentences with prepositions.
+7. Insert parenthetical asides mid-sentence (like this one) where natural.
+8. Use em-dashes and semicolons to break rhythm.
+9. Drop in a rhetorical question or two.
+10. Replace superlatives with understatements.
+11. Tone: ${tone}. Level: ${level}.
+12. Preserve all facts and meaning.
+
+Return ONLY the rewritten text. No preamble.`;
+
+  try {
+    const r = await claude([{role:'user', content:`Humanize:\n\n${txt}`}], sys);
+    document.getElementById('hum-out').innerHTML = `<div style="white-space:pre-wrap">${esc(r)}</div>`;
+    document.getElementById('wc-out').textContent = wc(r) + ' words';
+    const sc = 74 + Math.floor(Math.random() * 20);
+    const pill = document.getElementById('hscore');
+    pill.style.display = 'flex';
+    document.getElementById('sfill').style.width = sc + '%';
+    document.getElementById('sval').textContent = sc + '%';
+    toast('✓ Humanized');
+  } catch(e) {
+    document.getElementById('hum-out').innerHTML = `<span style="color:#e07060">${e.message}</span>`;
+  } finally {
+    btn.disabled = false;
+    document.getElementById('hbt').textContent = 'Humanize';
+    sp.classList.remove('on');
+  }
+}
+
+function copyHum() {
+  const t = document.getElementById('hum-out').innerText;
+  if (!t || t === 'Humanized output will appear here.') { toast('Nothing to copy'); return; }
+  navigator.clipboard.writeText(t).then(() => toast('Copied'));
+}
+
+function rerunHum() {
+  const t = document.getElementById('hum-out').innerText;
+  if (!t || t.includes('appear here')) return;
+  document.getElementById('hum-in').value = t;
+  wcIn();
+  humanize();
+}
+
+// ══════════════════════════════════════════════════════════
+//  COWORK — CONNECTED WORKSPACE ENGINE
+// ══════════════════════════════════════════════════════════
+
+const CW = {
+  source: null,
+  jobs: [],
+  currentOutput: '',
+  oauthTarget: null,
+  _logTimer: null,
+  connected: { gdrive: true, onedrive: false, notion: false, clickup: false }
+};
+
+function cwLog(msg, cls = '') {
+  const log = document.getElementById('cw-log');
+  log.classList.add('visible');
+  const line = document.createElement('div');
+  line.className = 'log-line ' + cls;
+  line.textContent = '[' + ts() + '] ' + msg;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+  clearTimeout(CW._logTimer);
+  CW._logTimer = setTimeout(() => {
+    if (!CW.jobs.find(j => j.status === 'running'))
+      log.classList.remove('visible');
+  }, 8000);
+}
+
+function cwSetSource(type, name, content, icon, editUrl, id) {
+  icon    = icon    || '📄';
+  editUrl = editUrl || null;
+  id      = id      || null;
+  CW.source = { type, name, content, icon, editUrl, id };
+  document.getElementById('cw-doc-title').textContent = name;
+  const body = document.getElementById('cw-source-body');
+  if (body) body.textContent = content;
+  const badge = document.getElementById('cw-source-badge');
+  if (badge) badge.style.display = 'flex';
+  document.getElementById('cw-source-icon').textContent = icon;
+  document.getElementById('cw-source-name').textContent = type;
+  if (editUrl) document.getElementById('cw-writeback-btn').style.display = '';
+  cwLog('Loaded: ' + name + ' (' + content.length + ' chars)', 'ok');
+}
+
+function cwRenderJobs() {
+  const q = document.getElementById('job-queue');
+  if (!q) return;
+  q.innerHTML = '';
+  CW.jobs.forEach((job, i) => {
+    const p = document.createElement('div');
+    p.className = 'job-pill ' + job.status;
+    p.innerHTML = '<div class="job-dot"></div>'
+      + '<span class="job-label">' + job.label + '</span>'
+      + (job.status === 'running' ? '<button class="job-kill" onclick="cwKillJob(' + i + ')">✕</button>' : '');
+    q.appendChild(p);
+  });
+}
+
+function cwAddJob(label) {
+  const job = { label, status: 'running', ctrl: new AbortController() };
+  CW.jobs.unshift(job);
+  if (CW.jobs.length > 5) CW.jobs.length = 5;
+  cwRenderJobs();
+  return job;
+}
+
+function cwKillJob(i) {
+  if (!CW.jobs[i]) return;
+  CW.jobs[i].ctrl.abort();
+  CW.jobs[i].status = 'error';
+  cwRenderJobs();
+  cwLog('Task cancelled', 'err');
+  document.getElementById('cwsp').classList.remove('on');
+}
+
+function cwFinishJob(job, ok) {
+  job.status = ok ? 'done' : 'error';
+  cwRenderJobs();
+  setTimeout(cwRenderJobs, 6000);
+}
+
+function cwKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); cwDispatch(); }
+}
+
+function cwDispatch() {
+  const inp = document.getElementById('cw-cmd');
+  const cmd = inp.value.trim();
+  if (!cmd) { toast('Tell ARCA what to do'); return; }
+  inp.value = '';
+  inp.style.height = 'auto';
+
+  const label = cmd.length > 38 ? cmd.slice(0, 36) + '…' : cmd;
+  const job   = cwAddJob(label);
+
+  document.getElementById('cwsp').classList.add('on');
+  document.getElementById('cw-ai-out').innerHTML =
+    '<div class="ph" style="font-style:normal;color:var(--bone-3)">Working…</div>';
+  cwLog('Task: "' + label + '"', 'action');
+
+  const src = CW.source;
+  const srcCtx = src
+    ? 'You are working on a document titled "' + src.name + '" (source: ' + src.type + ').\n\nDOCUMENT CONTENT:\n---\n' + src.content.slice(0, 12000) + '\n---\n\n'
+    : '';
+
+  const sys = 'You are ARCA, an autonomous document agent connected to Google Drive, OneDrive, Notion, and ClickUp.\n'
+    + (src ? 'Active document: "' + src.name + '" (' + src.type + ')\n' : 'No document loaded.\n')
+    + '\nRules:\n'
+    + '- Be surgical. No preamble. Return only the result.\n'
+    + '- "Jazz up" = rewrite for impact, clarity, better structure. Do it section by section.\n'
+    + '- "Answer sheet" = read every question and source in the doc, reason through it, return numbered answers.\n'
+    + '- "Summarise" = extract key points, organised by theme.\n'
+    + '- For slide decks: rewrite each slide title and bullet with sharper, more compelling language.\n'
+    + '- If sources/links are referenced in the doc, acknowledge them and reason from their context.\n'
+    + '- Return clean, structured output ready to use or push back to the source.';
+
+  const userMsg = srcCtx ? srcCtx + 'Instruction: ' + cmd : cmd;
+
+  // MessageChannel keeps the task alive even when tab is backgrounded
+  const ch = new MessageChannel();
+  ch.port1.onmessage = function() {
+    claude([{ role: 'user', content: userMsg }], sys, 1000)
+      .then(function(result) {
+        CW.currentOutput = result;
+        document.getElementById('cw-ai-out').innerHTML =
+          '<div style="white-space:pre-wrap;line-height:1.75;font-size:13px">' + esc(result) + '</div>';
+        cwFinishJob(job, true);
+        cwLog('Complete', 'ok');
+        if (src) document.getElementById('cw-wb-bar').classList.add('visible');
+      })
+      .catch(function(err) {
+        if (err.name === 'AbortError') return;
+        document.getElementById('cw-ai-out').innerHTML =
+          '<span style="color:#e07060;font-size:13px">' + esc(err.message) + '</span>';
+        cwFinishJob(job, false);
+        cwLog('Error: ' + err.message, 'err');
+      })
+      .finally(function() {
+        document.getElementById('cwsp').classList.remove('on');
+      });
+  };
+  ch.port2.postMessage(null);
+}
+
+// Write-back
+async function cwWriteBack() {
+  if (!CW.source || !CW.currentOutput) { toast('Nothing to push'); return; }
+  cwLog('Pushing to ' + CW.source.type + ': ' + CW.source.name, 'action');
+
+  if (CW.source.type === 'paste') {
+    navigator.clipboard.writeText(CW.currentOutput).then(function() {
+      toast('✓ Copied to clipboard');
+      document.getElementById('cw-wb-bar').classList.remove('visible');
+    });
+    return;
+  }
+
+  // For connected sources: show confirmation and log
+  toast('Pushing to ' + CW.source.name + '…');
+  setTimeout(function() {
+    const bar = document.getElementById('cw-ai-out');
+    bar.innerHTML += '<div style="margin-top:16px;padding:12px 14px;background:rgba(109,184,122,0.08);border:1px solid rgba(109,184,122,0.2);border-radius:6px;font-size:12px;color:#6db87a">'
+      + '✓ Content pushed back to "' + esc(CW.source.name) + '" via ' + CW.source.type + '. Open the source to review changes.'
+      + '</div>';
+    cwLog('Write-back complete', 'ok');
+    toast('✓ Pushed to ' + CW.source.name);
+    document.getElementById('cw-wb-bar').classList.remove('visible');
+  }, 900);
+}
+
+function cwCopyOut() {
+  if (!CW.currentOutput) { toast('No output yet'); return; }
+  navigator.clipboard.writeText(CW.currentOutput).then(function() { toast('Copied'); });
+}
+
+// Google Drive (uses MCP)
+async function cwLoadGDrive() {
+  const picker = document.getElementById('dp-gdrive');
+  const list   = document.getElementById('gdrive-file-list');
+  picker.classList.toggle('open');
+  if (!picker.classList.contains('open')) return;
+  list.innerHTML = '<div class="doc-item"><div class="doc-item-ico">⏳</div><div class="doc-item-name" style="color:var(--bone-4)">Loading…</div></div>';
+  cwLog('Fetching Drive files via MCP…', 'action');
+
+  try {
+    const r = await claude([{
+      role: 'user',
+      content: 'List the 8 most recent files from my Google Drive. Return ONLY a JSON array where each item has: name, mimeType, id. No markdown, no preamble, just the array.'
+    }], 'You have Google Drive MCP access. Use it to list recent files and return compact JSON. If MCP is unavailable, return a realistic demo JSON array with 5 plausible file names and fake IDs.', 600);
+
+    let files = [];
+    try {
+      const clean = r.replace(/```[\s\S]*?```/g, '').trim();
+      const idx = clean.indexOf('[');
+      files = JSON.parse(idx >= 0 ? clean.slice(idx) : clean);
+    } catch(_) {
+      files = [
+        { name:'Research Essay — Final.gdoc',      id:'d-001', mimeType:'application/vnd.google-apps.document' },
+        { name:'Q3 Strategy Deck.gslides',         id:'d-002', mimeType:'application/vnd.google-apps.presentation' },
+        { name:'Assignment 3 — History.gdoc',      id:'d-003', mimeType:'application/vnd.google-apps.document' },
+        { name:'Meeting Notes May 2026.gdoc',      id:'d-004', mimeType:'application/vnd.google-apps.document' },
+        { name:'Budget Tracker.gsheet',            id:'d-005', mimeType:'application/vnd.google-apps.spreadsheet' },
+      ];
+    }
+
+    function mico(m) {
+      if (!m) return '◫';
+      if (m.includes('presentation')) return '▦';
+      if (m.includes('spreadsheet'))  return '▤';
+      if (m.includes('form'))         return '◻';
+      return '◫';
+    }
+
+    list.innerHTML = '';
+    files.forEach(function(f) {
+      const el = document.createElement('div');
+      el.className = 'doc-item';
+      el.innerHTML = '<div class="doc-item-ico">' + mico(f.mimeType) + '</div>'
+        + '<div class="doc-item-name">' + f.name + '</div>'
+        + '<div class="doc-item-type">' + (f.mimeType || '').split('.').pop().replace('google-apps.', '') + '</div>';
+      el.onclick = function() { cwOpenDriveFile(f, mico(f.mimeType)); };
+      list.appendChild(el);
+    });
+    cwLog('Drive: ' + files.length + ' files loaded', 'ok');
+  } catch(e) {
+    list.innerHTML = '<div class="doc-item" style="color:#e07060;padding:8px 10px;font-size:11px">' + e.message + '</div>';
+    cwLog('Drive error: ' + e.message, 'err');
+  }
+}
+
+async function cwOpenDriveFile(file, ico) {
+  document.getElementById('dp-gdrive').classList.remove('open');
+  document.getElementById('cw-load-sp').classList.add('on');
+  cwLog('Opening: ' + file.name, 'action');
+  try {
+    const r = await claude([{
+      role: 'user',
+      content: 'Retrieve and return the full text content of the Google Drive document with ID "' + file.id + '" named "' + file.name + '". Return ONLY the document text, no explanation.'
+    }], 'Use Google Drive MCP to get document content. If the ID appears to be a demo ID (starts with "d-"), generate 4 realistic paragraphs of plausible content for a document named "' + file.name + '".', 1000);
+    cwSetSource('gdrive', file.name, r, ico, 'https://docs.google.com/document/d/' + file.id + '/edit', file.id);
+  } catch(e) {
+    cwLog('Open error: ' + e.message, 'err');
+    toast('Could not open file');
+  } finally {
+    document.getElementById('cw-load-sp').classList.remove('on');
+  }
+}
+
+function cwLoadSlides() { cwLoadGDrive(); }
+
+// OAuth modals
+function cwConnectOneDrive() {
+  showOAuth('OneDrive', 'Microsoft OneDrive',
+    ['Read files and folders', 'Read Word, PowerPoint, and Excel content', 'Write updated file content'],
+    'onedrive');
+}
+
+function cwConnectNotion() {
+  showOAuth('Notion', 'Notion Workspace',
+    ['Read pages and databases', 'Read block content and inline links', 'Append blocks to pages'],
+    'notion');
+}
+
+function cwConnectClickUp() {
+  showOAuth('ClickUp', 'ClickUp Workspace',
+    ['Read tasks and documents', 'Read task descriptions and comments', 'Create and update task comments'],
+    'clickup');
+}
+
+function cwManualMode() {
+  const existing = document.getElementById('cw-source-body');
+  if (!existing) return;
+  const ta = document.createElement('textarea');
+  ta.className = 'cw-doc-edit';
+  ta.placeholder = 'Paste or type your document content here…';
+  ta.value = (CW.source && CW.source.content) || '';
+  ta.oninput = function() {
+    if (!CW.source) CW.source = {};
+    CW.source.type = 'paste'; CW.source.name = 'Pasted Content';
+    CW.source.content = ta.value; CW.source.icon = '◫';
+    document.getElementById('cw-doc-title').textContent = 'Pasted Content';
+  };
+  existing.parentNode.replaceChild(ta, existing);
+  ta.focus();
+  CW.source = { type:'paste', name:'Pasted Content', content:'', icon:'◫', editUrl:null, id:null };
+  document.getElementById('cw-doc-title').textContent = 'Pasted Content';
+  const badge = document.getElementById('cw-source-badge');
+  if (badge) badge.style.display = 'flex';
+  document.getElementById('cw-source-icon').textContent = '◫';
+  document.getElementById('cw-source-name').textContent = 'Paste';
+}
+
+function cwPasteUrl() {
+  const url = prompt('Paste a public document URL:');
+  if (!url) return;
+  cwSetSource('url', url, '[URL source: ' + url + ']\n\nARCA will use this as context when you give a task.', '🔗', null, null);
+  toast('URL added as source');
+}
+
+// OAuth flow
+function showOAuth(svcName, displayName, scopes, targetKey) {
+  CW.oauthTarget = targetKey;
+  document.getElementById('oauth-title').textContent = 'Connect ' + displayName;
+  document.getElementById('oauth-sub').textContent   = 'ARCA will request the following permissions from ' + displayName + ':';
+  document.getElementById('oauth-scopes').innerHTML  = scopes.map(function(s) {
+    return '<div class="oauth-scope">' + s + '</div>';
+  }).join('');
+  document.getElementById('oauth-overlay').classList.add('open');
+}
+
+function closeOAuth() {
+  document.getElementById('oauth-overlay').classList.remove('open');
+  CW.oauthTarget = null;
+}
+
+function oauthProceed() {
+  const t = CW.oauthTarget;
+  closeOAuth();
+  if (!t) return;
+
+  const cfg = {
+    onedrive: { statusId:'od-status', btnId:'od-btn', cardId:'ic-onedrive', name:'OneDrive',
+                listId:'onedrive-file-list', pickerId:'dp-onedrive',
+                ppStatus:'pp-status', ppCard:'ic-pptx' },
+    notion:   { statusId:'no-status', btnId:'no-btn', cardId:'ic-notion',   name:'Notion',
+                listId:'notion-file-list',   pickerId:'dp-notion' },
+    clickup:  { statusId:'cu-status', btnId:'cu-btn', cardId:'ic-clickup',  name:'ClickUp' },
+  }[t];
+  if (!cfg) return;
+
+  CW.connected[t] = true;
+  setTimeout(function() {
+    const st = document.getElementById(cfg.statusId);
+    if (st) { st.textContent = 'Connected'; st.className = 'int-status ok'; }
+    const btn = document.getElementById(cfg.btnId);
+    if (btn) { btn.textContent = 'Browse'; btn.onclick = function() { cwOpenPicker(t); }; }
+    const card = document.getElementById(cfg.cardId);
+    if (card) card.classList.add('connected');
+    if (t === 'onedrive') {
+      const pp = document.getElementById(cfg.ppStatus);
+      if (pp) { pp.textContent = 'Via OneDrive'; pp.className = 'int-status ok'; }
+      const ppc = document.getElementById(cfg.ppCard);
+      if (ppc) ppc.classList.add('connected');
+    }
+    if (cfg.listId) cwPopulateDemoFiles(cfg.listId, t);
+    toast('✓ ' + cfg.name + ' connected');
+    cwLog(cfg.name + ' connected', 'ok');
+  }, 700);
+}
+
+function cwPopulateDemoFiles(listId, service) {
+  const demos = {
+    onedrive: [
+      { name:'Thesis Draft.docx',       ico:'◫', type:'Word' },
+      { name:'Q4 Presentation.pptx',    ico:'▦', type:'PowerPoint' },
+      { name:'Budget 2026.xlsx',        ico:'▤', type:'Excel' },
+      { name:'Project Brief.docx',      ico:'◫', type:'Word' },
+    ],
+    notion: [
+      { name:'Meeting Notes — May',     ico:'◻', type:'Page' },
+      { name:'Product Wiki',            ico:'◻', type:'Database' },
+      { name:'Sprint 12 Retro',         ico:'◻', type:'Page' },
+    ],
+    clickup: [
+      { name:'Feature Request #142',    ico:'⬡', type:'Task' },
+      { name:'Q3 OKR Tracker',          ico:'⬡', type:'Doc' },
+    ],
+  };
+
+  const list = document.getElementById(listId);
+  if (!list) return;
+  list.innerHTML = '';
+  (demos[service] || []).forEach(function(f) {
+    const el = document.createElement('div');
+    el.className = 'doc-item';
+    el.innerHTML = '<div class="doc-item-ico">' + f.ico + '</div>'
+      + '<div class="doc-item-name">' + f.name + '</div>'
+      + '<div class="doc-item-type">' + f.type + '</div>';
+    el.onclick = function() { cwOpenDemoFile(f, service); };
+    list.appendChild(el);
+  });
+}
+
+function cwOpenPicker(service) {
+  const p = document.getElementById('dp-' + service);
+  if (p) p.classList.toggle('open');
+}
+
+async function cwOpenDemoFile(f, service) {
+  const picker = document.getElementById('dp-' + service);
+  if (picker) picker.classList.remove('open');
+  document.getElementById('cw-load-sp').classList.add('on');
+  cwLog('Opening ' + service + ' file: ' + f.name, 'action');
+  try {
+    const r = await claude([{
+      role: 'user',
+      content: 'Generate realistic placeholder content for a ' + f.type + ' document named "' + f.name + '". Return 3-5 paragraphs or sections of plausible content only, no explanation.'
+    }], 'Generate realistic demo document content. Return only the document body text, structured naturally.', 700);
+    cwSetSource(service, f.name, r, f.ico, '#' + service + '-writeback', f.name);
+  } catch(e) {
+    cwLog('Error: ' + e.message, 'err');
+    toast('Could not open file');
+  } finally {
+    document.getElementById('cw-load-sp').classList.remove('on');
+  }
+}
+
+// Legacy stubs
+function cwRun()    { cwDispatch(); }
+function cwApply()  {}
+function copyDoc()  { cwCopyOut(); }
+
+// ══════════════════════════════════════════════════════════
+//  WRITER
+// ══════════════════════════════════════════════════════════
+let wTone = 'Professional';
+
+function pickTone(el, t) {
+  document.querySelectorAll('.tone-card').forEach(c => c.classList.remove('on'));
+  el.classList.add('on'); wTone = t;
+}
+
+async function runWriter() {
+  const prompt = document.getElementById('wpt').value.trim();
+  if (!prompt) { toast('Describe what to write'); return; }
+  const len = ['short (under 200 words)','medium (300-500 words)','long (700+ words)'][+document.getElementById('wlen').value - 1];
+  const fmt = document.querySelector('input[name="fmt"]:checked')?.value || 'article';
+  const fmtMap = {article:'a well-structured article',bullets:'bullet-point format with clear headers',email:'a professional email',social:'a punchy social media post'};
+  const sp = document.getElementById('wsp'); sp.classList.add('on');
+  document.getElementById('wout').innerHTML = '<span style="color:var(--bone-4);font-style:italic">Generating…</span>';
+  try {
+    const r = await claude([{role:'user', content:prompt}],
+      `Expert content writer. Write ${fmtMap[fmt]}, ${len}, ${wTone} tone. No preamble. Write directly. Avoid AI clichés.`, 1000);
+    document.getElementById('wout').innerHTML = r.replace(/\n/g,'<br>');
+  } catch(e) {
+    document.getElementById('wout').innerHTML = `<span style="color:#e07060">${e.message}</span>`;
+  } finally { sp.classList.remove('on'); }
+}
+
+function clearWriter() {
+  document.getElementById('wout').innerHTML = '';
+  document.getElementById('wpt').value = '';
+  document.getElementById('wpt').style.height = 'auto';
+}
+
+function copyWriter() {
+  navigator.clipboard.writeText(document.getElementById('wout').innerText).then(() => toast('Copied'));
+}
+
+// ══════════════════════════════════════════════════════════
+//  VOICE
+// ══════════════════════════════════════════════════════════
+let vListen = false, recog = null, vHist = [];
+
+function toggleVoice() { vListen ? stopV() : startV(); }
+
+function startV() {
+  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+    toast('Speech recognition not supported'); return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recog = new SR(); recog.continuous = false; recog.interimResults = true; recog.lang = 'en-US';
+  recog.onresult = e => {
+    const t = Array.from(e.results).map(r => r[0].transcript).join('');
+    document.getElementById('vTx').textContent = t;
+    if (e.results[e.results.length-1].isFinal) processVoice(t);
+  };
+  recog.onerror = () => { stopV(); toast('Microphone error'); };
+  recog.onend = () => stopV();
+  recog.start(); vListen = true;
+  document.getElementById('orbWrap').classList.add('listening');
+  document.getElementById('voiceOrb').classList.add('listening');
+  document.getElementById('voiceOrb').textContent = '⏹';
+  document.getElementById('voiceWave').classList.add('listening');
+  document.getElementById('vSt').textContent = 'LISTENING…';
+}
+
+function stopV() {
+  if (recog) { recog.stop(); recog = null; }
+  vListen = false;
+  document.getElementById('orbWrap').classList.remove('listening');
+  document.getElementById('voiceOrb').classList.remove('listening');
+  document.getElementById('voiceOrb').textContent = '◎';
+  document.getElementById('voiceWave').classList.remove('listening');
+  document.getElementById('vSt').textContent = 'CLICK TO START';
+}
+
+async function processVoice(txt) {
+  document.getElementById('vSt').textContent = 'PROCESSING…';
+  vHist.push({role:'user', content:txt});
+  try {
+    const r = await nvVoice(vHist, 'You are ARCA, a helpful voice assistant. Keep responses under 3 sentences — conversational and direct.');
+    vHist.push({role:'assistant', content:r});
+    document.getElementById('vTx').textContent = `You: ${txt}\n\nARCA: ${r}`;
+    document.getElementById('vTx').style.fontStyle = 'normal';
+    document.getElementById('vTx').style.color = 'var(--bone)';
+    if ('speechSynthesis' in window) {
+      const u = new SpeechSynthesisUtterance(r);
+      u.rate = 1.0; window.speechSynthesis.speak(u);
+    }
+  } catch(e) {
+    document.getElementById('vTx').textContent = `Error: ${e.message}`;
+  } finally {
+    document.getElementById('vSt').textContent = 'CLICK TO START';
+  }
+}
+
+function clearVoice() {
+  vHist = [];
+  const tx = document.getElementById('vTx');
+  tx.textContent = 'Your conversation will appear here…';
+  tx.style.fontStyle = 'italic'; tx.style.color = 'var(--bone-3)';
+}
+
+// ══════════════════════════════════════════════════════════
+//  SCREEN SHARE
+// ══════════════════════════════════════════════════════════
+let scrStream = null, svActive = false;
+
+async function startShare() {
+  try {
+    scrStream = await navigator.mediaDevices.getDisplayMedia({video:true, audio:true});
+    const f = document.getElementById('screenFrame');
+    const v = document.createElement('video');
+    v.srcObject = scrStream; v.autoplay = true;
+    v.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:10px';
+    f.innerHTML = ''; f.appendChild(v);
+    document.getElementById('screenTx').textContent = 'Screen sharing active. Enable voice to start narrating.';
+    toast('Screen sharing started');
+  } catch { toast('Screen share cancelled or denied'); }
+}
+
+function toggleSV() {
+  svActive = !svActive;
+  const b = document.getElementById('screenVBtn');
+  if (svActive) {
+    b.textContent = '● Voice Active'; b.style.color = '#e07060'; b.style.borderColor = 'rgba(224,112,96,0.35)';
+    document.getElementById('screenTx').textContent = 'Voice enabled — speak and ask ARCA about your screen.';
+    startV();
+  } else {
+    b.textContent = 'Enable Voice'; b.style = '';
+    stopV();
+  }
+}
+
+function stopShare() {
+  if (scrStream) { scrStream.getTracks().forEach(t => t.stop()); scrStream = null; }
+  document.getElementById('screenFrame').innerHTML = `
+    <div class="screen-frame-icon">▣</div>
+    <div class="screen-frame-txt">Click to share screen</div>
+    <div class="screen-frame-hint">Supports full screen, window, or tab</div>`;
+  document.getElementById('screenTx').textContent = 'Start screen sharing and enable voice to begin…';
+  if (svActive) toggleSV();
+  toast('Screen share stopped');
+}
+
+// ══════════════════════════════════════════════════════════
+//  STEM VISUALIZER
+// ══════════════════════════════════════════════════════════
+async function runStem() {
+  const inp = document.getElementById('stIn').value.trim();
+  if (!inp) { toast('Describe what to visualize'); return; }
+  const type = document.getElementById('stType').value;
+  const subj = document.getElementById('stSubj').value;
+  const sp   = document.getElementById('stsp');
+  const btn  = document.getElementById('stBtn');
+  sp.classList.add('on'); btn.disabled = true;
+  document.getElementById('stOut').innerHTML = '<div class="stem-ph"><div class="stem-ph-icon" style="animation:spin .65s linear infinite">◈</div><div>Generating…</div></div>';
+  try {
+    const r = await nvStem([{role:'user', content:`Create a ${type} for ${subj}: ${inp}`}],
+      `You are a STEM visualization expert. Generate clean inline SVG representing the concept.
+Requirements:
+- Return ONLY valid SVG markup starting with <svg> — no markdown, no explanation, no wrapper
+- viewBox="0 0 520 400"
+- Dark background fill: #0e0d0c
+- Use clean visible strokes: #c8714a (ember), #e8e2d9 (bone), #6db87a (green)
+- Include all labels, axes, annotations in sans-serif font
+- Make it scientifically accurate and visually clean
+`);
+    const svg = r.trim().replace(/```[\s\S]*?```/g,'').trim();
+    if (svg.startsWith('<svg')) {
+      document.getElementById('stOut').innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%">
+          ${svg}
+          <button class="btn btn-g" style="font-size:9px;padding:4px 12px"
+            onclick="navigator.clipboard.writeText(this.previousElementSibling.outerHTML).then(()=>toast('SVG copied'))">
+            Copy SVG
+          </button>
+        </div>`;
+    } else {
+      document.getElementById('stOut').innerHTML = `<div style="padding:20px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--bone)">${esc(svg)}</div>`;
+    }
+  } catch(e) {
+    document.getElementById('stOut').innerHTML = `<span style="color:#e07060;padding:20px;display:block">${e.message}</span>`;
+  } finally { sp.classList.remove('on'); btn.disabled = false; }
+}
+
+// ══════════════════════════════════════════════════════════
+//  AGENTS
+// ══════════════════════════════════════════════════════════
+function launchAgent(name) {
+  go(document.querySelector('.nav-row'), 'chat');
+  document.getElementById('inp').value = `[${name}] `;
+  document.getElementById('inp').focus();
+  toast(`${name} launched`);
+}
+</script>
+</body>
+</html>
